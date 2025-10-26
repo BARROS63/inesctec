@@ -13,4 +13,5 @@ for fname, label, color in zip(files, labels, colors):
 plt.legend()
 plt.gca().invert_yaxis()  # porque o grid do C++ tem origem no canto
 plt.title("Trajectories Comparison")
-plt.show()
+plt.savefig("paths.png", dpi=200)
+
