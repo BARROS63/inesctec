@@ -160,7 +160,7 @@ int main(){
 
     // Obstáculos no meio do caminho
     Obstacle o1{20,20,5};
-    Obstacle o2{40,45,5};
+    Obstacle o2{40,40,5};
     rasterizeObstacle(g,o1);
     rasterizeObstacle(g,o2);
 
