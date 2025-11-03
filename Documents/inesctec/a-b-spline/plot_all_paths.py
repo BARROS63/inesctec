@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import matplotlib.patches as patches
 
-files = ["bspline.csv"] #"lazytheta.csv","cubic.csv","bezier.csv"
+files = ["lazytheta.csv","cubic.csv","bspline.csv","bezier.csv"]
 labels = ["Lazy Theta*","Cubic","B-Spline","Bezier"]
 colors = ["black","red","blue","green"]
 

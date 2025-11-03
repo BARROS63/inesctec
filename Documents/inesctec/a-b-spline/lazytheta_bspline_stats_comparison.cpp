@@ -127,9 +127,21 @@ vector<Pt> splineCubic2D(const vector<Pt>& P,int samplesPerSeg=30){
 //=========== B-spline (de Boor) ===========
 vector<double> uniformClampedKnot(int m,int p){
     int K=m+p+1; vector<double>U(K);
+    // Set up multiplicity at the ends for clamped B-spline
     for(int i=0;i<=p;i++) U[i]=0.0;
-    for(int i=p+1;i<K-p-1;i++) U[i]=double(i-p)/double(K-2*p-1);
-    for(int i=K-p-1;i<K;i++) U[i]=1.0; return U;
+    for(int i=K-p-1;i<K;i++) U[i]=1.0;
+    
+    // Generate internal knots with better spacing
+    double step = 1.0/(K-2*p-1);
+    for(int i=p+1;i<K-p-1;i++) {
+        // Use a slight variation to prevent uniform spacing
+        double variation = (i % 2 == 0) ? 0.1*step : -0.1*step;
+        U[i] = (i-p)*step + variation;
+        // Ensure monotonicity
+        if(i > p+1) U[i] = max(U[i], U[i-1] + 0.01);
+        if(U[i] >= 1.0) U[i] = U[i-1] + (1.0 - U[i-1])*0.5;
+    }
+    return U;
 }
 Pt deBoorCubic(const vector<Pt>&C,const vector<double>&U,double u){
     const int p=3; int m=U.size()-1,n=C.size()-1;
@@ -140,18 +152,36 @@ Pt deBoorCubic(const vector<Pt>&C,const vector<double>&U,double u){
         d[j].x=(1-alpha)*d[j-1].x+alpha*d[j].x; d[j].y=(1-alpha)*d[j-1].y+alpha*d[j].y;}
     return d[p];
 }
-vector<Pt> bSplineCubic(const vector<Pt>&ctrl,int samples=400){
-    if(ctrl.size()<4) return ctrl; const int p=3;
-    vector<double>U=uniformClampedKnot(ctrl.size(),p); vector<Pt>out;
-    for(int i=0;i<=samples;i++){double u=double(i)/samples; out.push_back(deBoorCubic(ctrl,U,u));}
+vector<Pt> bSplineCubic(const vector<Pt>&path,int samples=30){
+    if(path.size()<4) return path;
+    const int p=3;
+    
+    // Generate control points with additional intermediate points
+    vector<Pt> ctrl;
+    for(size_t i = 0; i < path.size()-1; i++) {
+        ctrl.push_back(path[i]);
+        // Add intermediate control point if segments are far apart
+        if(dist(path[i], path[i+1]) > 5.0) {
+            Pt mid = {(path[i].x + path[i+1].x)*0.5, (path[i].y + path[i+1].y)*0.5};
+            ctrl.push_back(mid);
+        }
+    }
+    ctrl.push_back(path.back());
+    
+    vector<double>U=uniformClampedKnot(ctrl.size(),p);
+    vector<Pt>out;
+    for(int i=0;i<=samples;i++){
+        double u=double(i)/samples;
+        out.push_back(deBoorCubic(ctrl,U,u));
+    }
     return out;
 }
 
 //=========== Piecewise Bézier ===========
-vector<Pt> bezierPiecewise(const vector<Pt>&P,int samples=40){
+vector<Pt> bezierPiecewise(const vector<Pt>&P,int samples=30){
     int n=P.size(); if(n<2) return P;
     auto add=[&](Pt a,Pt b){return Pt{a.x+b.x,a.y+b.y};};
-    auto sub=[&](Pt a,Pt b){return Pt{a.x-b.x,a.y-b.y};};
+    auto sub=[&](Pt a,Pt b){return Pt{a.x-b.x,a.y-b.y};};   
     auto mul=[&](Pt a,double s){return Pt{a.x*s,a.y*s};};
     vector<Pt>T(n); for(int i=0;i<n;i++){Pt pPrev=P[max(0,i-1)],pNext=P[min(n-1,i+1)];T[i]=mul(sub(pNext,pPrev),0.5);}
     vector<Pt>out; out.push_back(P.front());
@@ -187,8 +217,8 @@ int main(){
 
     auto path=lazyTheta(g,int(S.x),int(S.y),int(G.x),int(G.y));
     auto cubic=splineCubic2D(path,30);
-    auto bspline=bSplineCubic(path,600);
-    auto bezier=bezierPiecewise(path,40);
+    auto bspline=bSplineCubic(path,30);
+    auto bezier=bezierPiecewise(path,30);
 
     exportCSV("lazytheta.csv",path);
     exportCSV("cubic.csv",cubic);
