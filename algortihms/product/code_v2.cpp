@@ -542,7 +542,6 @@ int main()
     }
 
     writeMissionPlannerWPL("mission_plan.waypoints", wp_latlon, ALT_M);
-    cout << "[OK] mission_plan.waypoints created (Mission Planner / QGC WPL 110).\n";
 
     // --- Terminal metrics and “how much better” (B-spline vs Lazy Theta*) ---
     auto Ml = evaluate(lazy_m,    obs, DRONE_RADIUS);
@@ -558,11 +557,6 @@ int main()
     cout << "Δ Smoothness: " << fixed << setprecision(3) << (Mb.smooth - Ml.smooth) << " rad"
      << "  (" << fixed << setprecision(2) << pct_gain(Ml.smooth, Mb.smooth) << " % change vs base)\n";
     cout << "Collision delta (base - smooth): " << (Ml.collisions - Mb.collisions) << "\n";
-
-
-    cout << "\nDone.\n";
-    cout << "Open 'path.svg' to see the path and obstacles.\n";
-    cout << "Upload 'mission_plan.waypoints' into Mission Planner to visualise/fly.\n";
 
     writePathCSV("lazy.csv", lazy_m);
     writePathCSV("bspline.csv", bspline_m);

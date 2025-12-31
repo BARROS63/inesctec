@@ -105,4 +105,3 @@ ax.legend()
 ax.set_title(f"Lazy Theta* planning + B-spline smoothing ({cageL}m x {cageW}m cage)")
 
 plt.savefig("path.png", dpi=220)
-print("[OK] Saved path.png")
