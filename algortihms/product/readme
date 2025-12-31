@@ -1,1 +1,1 @@
-
+clang++ -std=c++17 -O2 -Wall -Wextra -o planner code_v2.cpp ./planner  
